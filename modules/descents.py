@@ -510,7 +510,21 @@ class Adam(VanillaGradientDescent):
         np.ndarray
             Разность весов (w_{k + 1} - w_k).
         """
-        raise NotImplementedError('Adagrad update_weights function not implemented')
+
+        self.iteration += 1
+
+        self.m = self.beta_1 * self.m + (1 - self.beta_1) * gradient
+
+        self.v = self.beta_2 * self.v + (1 - self.beta_2) * (gradient ** 2)
+
+        m_hat = self.m / (1 - self.beta_1 ** self.iteration)
+
+        v_hat = self.v / (1 - self.beta_2 ** self.iteration)
+
+        weight_update = (self.lr() / (np.sqrt(v_hat) + self.eps)) * m_hat
+        self.w -= weight_update
+
+        return -weight_update
 
 
 class BaseDescentReg(BaseDescent):
