@@ -4,8 +4,8 @@ from typing import List
 
 import numpy as np
 
-from descents import BaseDescent
-from descents import get_descent
+from .descents import BaseDescent
+from .descents import get_descent
 
 
 class LinearRegression:
@@ -64,8 +64,25 @@ class LinearRegression:
             Возвращает экземпляр класса с обученными весами.
 
         """
-        # TODO: реализовать подбор весов для x и y
-        raise NotImplementedError('Функция fit класса LinearRegression не реализована')
+        initial_loss = self.calc_loss(x, y)
+        self.loss_history.append(initial_loss)
+
+        for iteration in range(self.max_iter):
+            gradient = self.descent.calc_gradient(x, y)
+            weight_difference = self.descent.update_weights(gradient)
+
+            if np.isnan(self.descent.w).any():
+                print("NaN encountered in weights, stopping early.")
+                break
+
+            current_loss = self.calc_loss(x, y)
+            self.loss_history.append(current_loss)
+
+            if np.linalg.norm(weight_difference) < self.tolerance:
+                print("Converged.")
+                break
+
+        return self
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
