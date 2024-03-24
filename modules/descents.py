@@ -432,8 +432,10 @@ class MomentumDescent(VanillaGradientDescent):
         np.ndarray
             Разность весов (w_{k + 1} - w_k).
         """
-        # TODO: implement updating weights function
-        raise NotImplementedError('MomentumDescent update_weights function not implemented')
+        self.h = self.alpha * self.h + self.lr() * gradient
+        diff_weights = - self.h
+        self.w += diff_weights
+        return diff_weights
 
 
 class Adam(VanillaGradientDescent):
