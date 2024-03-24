@@ -346,7 +346,32 @@ class StochasticDescent(VanillaGradientDescent):
         np.ndarray
             Градиент функции потерь по весам, вычисленный по мини-пакету.
         """
-        raise NotImplementedError('StochasticDescent calc_gradient function not implemented')
+        assert x.shape[0] == y.shape[0], 'x and y must have the same number of samples'
+
+        indices = np.random.randint(0, x.shape[0], size=self.batch_size)
+        x_batch = x[indices]
+        y_batch = y[indices]
+
+        l = x_batch.shape[0]
+        predictions = self.predict(x_batch)
+
+        delta = 1.35  # Hardcode
+
+        if self.loss_function == LossFunction.MSE:
+            gradient = (2 / l) * x_batch.T @ (predictions - y_batch)
+        elif self.loss_function == LossFunction.MAE:
+            gradient = (1 / l) * x_batch.T @ np.sign(predictions - y_batch)
+        elif self.loss_function == LossFunction.LogCosh:
+            gradient = (1 / l) * x_batch.T @ np.tanh(predictions - y_batch)
+        elif self.loss_function == LossFunction.Huber:
+            diff = predictions - y_batch
+            is_small_error = np.abs(diff) <= delta
+            squared_loss_grad = diff * (is_small_error + (np.abs(diff) > delta) * delta / np.abs(diff))
+            gradient = (1 / l) * x_batch.T @ squared_loss_grad
+        else:
+            raise ValueError("Unknown loss function")
+
+        return gradient
 
 
 class MomentumDescent(VanillaGradientDescent):
