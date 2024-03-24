@@ -68,6 +68,24 @@ class LossFunction(Enum):
     Huber = auto()
 
 
+def calculate_loss(y_true: np.ndarray, y_pred: np.ndarray, loss_function: LossFunction,
+                   delta: float = 1.35) -> float:
+    if loss_function == LossFunction.MSE:
+        return float(np.mean((y_pred - y_true) ** 2).squeeze())
+    elif loss_function == LossFunction.MAE:
+        return float(np.mean(np.abs(y_pred - y_true)).squeeze())
+    elif loss_function == LossFunction.LogCosh:
+        return float(np.mean(np.log(np.cosh(y_pred - y_true))).squeeze())
+    elif loss_function == LossFunction.Huber:
+        diff = np.abs(y_pred - y_true)
+        is_small_error = diff <= delta
+        squared_loss = 0.5 * (diff ** 2)
+        linear_loss = delta * (diff - 0.5 * delta)
+        return float(np.mean(np.where(is_small_error, squared_loss, linear_loss)).squeeze())
+    else:
+        raise ValueError("Unknown loss function")
+
+
 class BaseDescent:
     """
     Базовый класс для всех методов градиентного спуска.
@@ -199,7 +217,13 @@ class BaseDescent:
         float
             Значение функции потерь.
         """
-        raise NotImplementedError('BaseDescent calc_loss function not implemented')
+        predictions = self.predict(x)
+        loss = calculate_loss(y_true=y,
+                              y_pred=predictions,
+                              loss_function=self.loss_function,
+                              delta=1.35
+                              )
+        return loss
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
@@ -215,7 +239,7 @@ class BaseDescent:
         np.ndarray
             Прогнозируемые значения.
         """
-        raise NotImplementedError('BaseDescent predict function not implemented')
+        return x @ self.w
 
 
 class VanillaGradientDescent(BaseDescent):
