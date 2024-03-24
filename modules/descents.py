@@ -68,24 +68,6 @@ class LossFunction(Enum):
     Huber = auto()
 
 
-def calculate_loss(y_true: np.ndarray, y_pred: np.ndarray, loss_function: LossFunction,
-                   delta: float = 1.35) -> float:
-    if loss_function == LossFunction.MSE:
-        return float(np.mean((y_pred - y_true) ** 2).squeeze())
-    elif loss_function == LossFunction.MAE:
-        return float(np.mean(np.abs(y_pred - y_true)).squeeze())
-    elif loss_function == LossFunction.LogCosh:
-        return float(np.mean(np.log(np.cosh(y_pred - y_true))).squeeze())
-    elif loss_function == LossFunction.Huber:
-        diff = np.abs(y_pred - y_true)
-        is_small_error = diff <= delta
-        squared_loss = 0.5 * (diff ** 2)
-        linear_loss = delta * (diff - 0.5 * delta)
-        return float(np.mean(np.where(is_small_error, squared_loss, linear_loss)).squeeze())
-    else:
-        raise ValueError("Unknown loss function")
-
-
 class BaseDescent:
     """
     Базовый класс для всех методов градиентного спуска.
@@ -217,13 +199,24 @@ class BaseDescent:
         float
             Значение функции потерь.
         """
-        predictions = self.predict(x)
-        loss = calculate_loss(y_true=y,
-                              y_pred=predictions,
-                              loss_function=self.loss_function,
-                              delta=1.35
-                              )
-        return loss
+        y_pred = self.predict(x)
+
+        delta = 1.35  # temporary hard code
+
+        if self.loss_function == LossFunction.MSE:
+            return float(np.mean((y_pred - y) ** 2).squeeze())
+        elif self.loss_function == LossFunction.MAE:
+            return float(np.mean(np.abs(y_pred - y)).squeeze())
+        elif self.loss_function == LossFunction.LogCosh:
+            return float(np.mean(np.log(np.cosh(y_pred - y))).squeeze())
+        elif self.loss_function == LossFunction.Huber:
+            diff = np.abs(y_pred - y)
+            is_small_error = diff <= delta
+            squared_loss = 0.5 * (diff ** 2)
+            linear_loss = delta * (diff - 0.5 * delta)
+            return float(np.mean(np.where(is_small_error, squared_loss, linear_loss)).squeeze())
+        else:
+            raise ValueError("Unknown loss function")
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
@@ -268,7 +261,9 @@ class VanillaGradientDescent(BaseDescent):
         np.ndarray
             Разность весов (w_{k + 1} - w_k).
         """
-        raise NotImplementedError('VanillaGradientDescent update_weights function not implemented')
+        diff_weights = -gradient * self.lr()
+        self.w += diff_weights
+        return diff_weights
 
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
@@ -286,7 +281,28 @@ class VanillaGradientDescent(BaseDescent):
         np.ndarray
             Градиент функции потерь по весам.
         """
-        raise NotImplementedError('VanillaGradientDescent calc_gradient function not implemented')
+        assert x.shape[0] == y.shape[0], 'x and y must have the same number of samples'
+        l = x.shape[0]
+        predictions = self.predict(x)
+
+        delta = 1.35  # temporary hard code
+
+        if self.loss_function == LossFunction.MSE:
+            gradient = (2 / l) * x.T @ (predictions - y)
+        elif self.loss_function == LossFunction.MAE:
+            gradient = (1 / l) * x.T @ np.sign(predictions - y)
+        elif self.loss_function == LossFunction.LogCosh:
+            gradient = (1 / l) * x.T @ np.tanh(predictions - y)
+        elif self.loss_function == LossFunction.Huber:
+            diff = predictions - y
+            is_small_error = np.abs(diff) <= delta
+            squared_loss_grad = 2 * diff
+            linear_loss_grad = delta * np.sign(diff)
+            gradient = (1 / l) * x.T @ np.where(is_small_error, squared_loss_grad, linear_loss_grad)
+        else:
+            raise ValueError("Unknown loss function")
+
+        return gradient
 
 
 class StochasticDescent(VanillaGradientDescent):
