@@ -80,7 +80,8 @@ class LinearRegression:
             self.loss_history.append(current_loss)
 
             if np.linalg.norm(weight_difference) < self.tolerance:
-                logger.info("Converged.")
+                logger.info(
+                    f"Converged: weight_difference < tolerance: {np.linalg.norm(weight_difference)} < {self.tolerance}.")
                 break
 
         return self
