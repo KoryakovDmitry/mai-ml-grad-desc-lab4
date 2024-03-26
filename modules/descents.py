@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import auto
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional, Callable
 from typing import Type
 
 import numpy as np
@@ -80,6 +80,8 @@ class BaseDescent:
         Параметр скорости обучения. По умолчанию 1e-3.
     loss_function : LossFunction, optional
         Функция потерь, которая будет оптимизироваться. По умолчанию MSE.
+    postprocessor_target_transformer: Callable, optional
+        postprocessor target
 
     Attributes
     ----------
@@ -89,6 +91,8 @@ class BaseDescent:
         Скорость обучения.
     loss_function : LossFunction
         Функция потерь.
+    postprocessor_target_transformer: Callable
+        postprocessor target
 
     Methods
     -------
@@ -104,7 +108,8 @@ class BaseDescent:
         Вычисление прогнозов на основе признаков x.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE,
+                 postprocessor_target_transformer: Optional[Callable] = None):
         """
         Инициализация базового класса для градиентного спуска.
 
@@ -116,6 +121,7 @@ class BaseDescent:
             Параметр скорости обучения.
         loss_function : LossFunction
             Функция потерь, которая будет оптимизирована.
+        :param postprocessor_target_transformer: postprocessor target
 
         Attributes
         ----------
@@ -129,6 +135,7 @@ class BaseDescent:
         self.w: np.ndarray = np.random.rand(dimension)
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
         self.loss_function: LossFunction = loss_function
+        self.postprocessor_target_transformer: Callable = postprocessor_target_transformer
 
     def step(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
@@ -200,6 +207,9 @@ class BaseDescent:
             Значение функции потерь.
         """
         y_pred = self.predict(x)
+        if self.postprocessor_target_transformer is not None:
+            y_pred = self.postprocessor_target_transformer(y_pred)
+            y = self.postprocessor_target_transformer(y)
 
         delta = 1.35  # temporary hard code
 
