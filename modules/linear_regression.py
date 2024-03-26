@@ -4,6 +4,7 @@ from typing import List
 
 import numpy as np
 
+from utils.logger import logger
 from .descents import BaseDescent
 from .descents import get_descent
 
@@ -72,14 +73,14 @@ class LinearRegression:
             weight_difference = self.descent.update_weights(gradient)
 
             if np.isnan(self.descent.w).any():
-                print("NaN encountered in weights, stopping early.")
+                logger.info("NaN encountered in weights, stopping early.")
                 break
 
             current_loss = self.calc_loss(x, y)
             self.loss_history.append(current_loss)
 
             if np.linalg.norm(weight_difference) < self.tolerance:
-                print("Converged.")
+                logger.info("Converged.")
                 break
 
         return self
