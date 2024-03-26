@@ -336,8 +336,9 @@ class StochasticDescent(VanillaGradientDescent):
     """
 
     def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50,
-                 loss_function: LossFunction = LossFunction.MSE):
-        super().__init__(dimension, lambda_, loss_function)
+                 loss_function: LossFunction = LossFunction.MSE,
+                 postprocessor_target_transformer: Optional[Callable] = None):
+        super().__init__(dimension, lambda_, loss_function, postprocessor_target_transformer)
         self.batch_size = batch_size
 
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -410,7 +411,8 @@ class MomentumDescent(VanillaGradientDescent):
         Обновление весов с использованием момента.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE,
+                 postprocessor_target_transformer: Optional[Callable] = None):
         """
         Инициализация класса градиентного спуска с моментом.
 
@@ -423,7 +425,7 @@ class MomentumDescent(VanillaGradientDescent):
         loss_function : LossFunction
             Оптимизируемая функция потерь.
         """
-        super().__init__(dimension, lambda_, loss_function)
+        super().__init__(dimension, lambda_, loss_function, postprocessor_target_transformer)
         self.alpha: float = 0.9
 
         self.h: np.ndarray = np.zeros(dimension)
@@ -482,7 +484,8 @@ class Adam(VanillaGradientDescent):
         Обновление весов с использованием адаптивной оценки моментов.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE,
+                 postprocessor_target_transformer: Optional[Callable] = None):
         """
         Инициализация класса Adam.
 
@@ -495,7 +498,7 @@ class Adam(VanillaGradientDescent):
         loss_function : LossFunction
             Оптимизируемая функция потерь.
         """
-        super().__init__(dimension, lambda_, loss_function)
+        super().__init__(dimension, lambda_, loss_function, postprocessor_target_transformer)
         self.eps: float = 1e-8
 
         self.m: np.ndarray = np.zeros(dimension)
