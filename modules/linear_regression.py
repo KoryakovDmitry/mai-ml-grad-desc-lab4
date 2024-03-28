@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List
 
 import numpy as np
+from tqdm import tqdm
 
 from utils.logger import logger
 from .descents import BaseDescent
@@ -45,6 +46,7 @@ class LinearRegression:
 
         self.tolerance: float = tolerance
         self.max_iter: int = max_iter
+        self.last_iter: int = 0
 
         self.loss_history: List[float] = []
 
@@ -68,7 +70,8 @@ class LinearRegression:
         initial_loss = self.calc_loss(x, y)
         self.loss_history.append(initial_loss)
 
-        for iteration in range(self.max_iter):
+        iteration = 0
+        for iteration in tqdm(range(self.max_iter)):
             gradient = self.descent.calc_gradient(x, y)
             weight_difference = self.descent.update_weights(gradient)
 
@@ -84,6 +87,7 @@ class LinearRegression:
                     f"Converged: weight_difference < tolerance: {np.linalg.norm(weight_difference)} < {self.tolerance}.")
                 break
 
+        self.last_iter = iteration
         return self
 
     def predict(self, x: np.ndarray) -> np.ndarray:

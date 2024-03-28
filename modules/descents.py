@@ -411,7 +411,8 @@ class MomentumDescent(VanillaGradientDescent):
         Обновление весов с использованием момента.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE,
+    def __init__(self, dimension: int, lambda_: float = 1e-3, alpha: float = None,
+                 loss_function: LossFunction = LossFunction.MSE,
                  postprocessor_target_transformer: Optional[Callable] = None):
         """
         Инициализация класса градиентного спуска с моментом.
@@ -426,7 +427,7 @@ class MomentumDescent(VanillaGradientDescent):
             Оптимизируемая функция потерь.
         """
         super().__init__(dimension, lambda_, loss_function, postprocessor_target_transformer)
-        self.alpha: float = 0.9
+        self.alpha: float = 0.9 if alpha is None else alpha
 
         self.h: np.ndarray = np.zeros(dimension)
 
@@ -484,7 +485,8 @@ class Adam(VanillaGradientDescent):
         Обновление весов с использованием адаптивной оценки моментов.
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE,
+    def __init__(self, dimension: int, lambda_: float = 1e-3, eps: float = None, beta_1: float = None,
+                 beta_2: float = None, loss_function: LossFunction = LossFunction.MSE,
                  postprocessor_target_transformer: Optional[Callable] = None):
         """
         Инициализация класса Adam.
@@ -499,13 +501,13 @@ class Adam(VanillaGradientDescent):
             Оптимизируемая функция потерь.
         """
         super().__init__(dimension, lambda_, loss_function, postprocessor_target_transformer)
-        self.eps: float = 1e-8
+        self.eps: float = 1e-8 if eps is None else eps
 
         self.m: np.ndarray = np.zeros(dimension)
         self.v: np.ndarray = np.zeros(dimension)
 
-        self.beta_1: float = 0.9
-        self.beta_2: float = 0.999
+        self.beta_1: float = 0.9 if beta_1 is None else beta_1
+        self.beta_2: float = 0.999 if beta_2 is None else beta_2
 
         self.iteration: int = 0
 
