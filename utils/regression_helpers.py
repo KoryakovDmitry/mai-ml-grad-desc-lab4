@@ -33,7 +33,8 @@ def r2_score(y_true, y_pred):
 
 
 # Worker function
-def fit_and_evaluate(cfg_name, lambda_value, descent_config, tolerance, max_iter, x, y, X_train, y_train, X_val, y_val):
+def fit_and_evaluate_task51(cfg_name, lambda_value, descent_config, tolerance, max_iter, X_train, y_train, X_val,
+                            y_val):
     descent_config = copy.deepcopy(descent_config)
     descent_config['kwargs']['lambda_'] = lambda_value
 
@@ -42,7 +43,7 @@ def fit_and_evaluate(cfg_name, lambda_value, descent_config, tolerance, max_iter
         tolerance=tolerance,
         max_iter=max_iter
     )
-    regression.fit(x, y)
+    regression.fit(X_train, y_train)
 
     train_error = regression.calc_loss(X_train, y_train)
     train_r2 = r2_score(y_true=y_train, y_pred=regression.predict(X_train))
@@ -56,6 +57,40 @@ def fit_and_evaluate(cfg_name, lambda_value, descent_config, tolerance, max_iter
         'val_error': val_error,
         'val_r2': val_r2,
         'last_iteration_step': regression.last_iter,
+    }
+
+    return cfg_name, result
+
+
+def fit_and_evaluate_task52(cfg_name, lambda_value, descent_config, tolerance, max_iter, X_train, y_train, X_val,
+                            y_val, X_test, y_test):
+    descent_config = copy.deepcopy(descent_config)
+    descent_config['kwargs']['lambda_'] = lambda_value
+
+    regression = LinearRegression(
+        descent_config=descent_config,
+        tolerance=tolerance,
+        max_iter=max_iter
+    )
+    regression.fit(X_train, y_train)
+
+    train_error = regression.calc_loss(X_train, y_train)
+    train_r2 = r2_score(y_true=y_train, y_pred=regression.predict(X_train))
+    val_error = regression.calc_loss(X_val, y_val)
+    val_r2 = r2_score(y_true=y_val, y_pred=regression.predict(X_val))
+    test_error = regression.calc_loss(X_test, y_test)
+    test_r2 = r2_score(y_true=y_test, y_pred=regression.predict(X_test))
+
+    result = {
+        'lambda': lambda_value,
+        'train_error': train_error,
+        'train_r2': train_r2,
+        'val_error': val_error,
+        'val_r2': val_r2,
+        'test_error': test_error,
+        'test_r2': test_r2,
+        'last_iteration_step': regression.last_iter,
+        'loss_history': regression.loss_history
     }
 
     return cfg_name, result
