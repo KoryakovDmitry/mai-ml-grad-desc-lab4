@@ -590,9 +590,31 @@ class BaseDescentReg(BaseDescent):
         np.ndarray
             Градиент функции потерь с учетом L2 регуляризации по весам.
         """
-        l2_gradient: np.ndarray = np.zeros_like(x.shape[1])
+        grad_loss = super().calc_gradient(x, y)  # Градиент функции потерь
+        l2_gradient = self.w * self.mu  # Градиент L2 регуляризации
 
-        return super().calc_gradient(x, y) + l2_gradient * self.mu
+        return grad_loss + l2_gradient
+
+    def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
+        """
+        Вычисление значения функции потерь с использованием текущих весов.
+
+        Parameters
+        ----------
+        x : np.ndarray
+            Массив признаков.
+        y : np.ndarray
+            Массив целевых переменных.
+
+        Returns
+        -------
+        float
+            Значение функции потерь.
+        """
+        loss = super().calc_loss(x, y)
+        l2_reg = self.mu / 2 * np.sum(self.w ** 2)
+
+        return loss + l2_reg
 
 
 class VanillaGradientDescentReg(BaseDescentReg, VanillaGradientDescent):
